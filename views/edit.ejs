@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="ja">
+    <head>
+        <meta charset="UTF-8">
+        <title>商品詳細：<%= user[0].name %></title>
+        <link type="text/css" rel="stylesheet" href="/css/style.css">
+    </head>
+    <body>
+        <section id="app">
+            <h1>商品詳細</h1>
+            <div class="itemInfo">
+                <div class="itemInfo2">
+                    <div class="img">
+                        <img src="../image/number-<%= user[0].id %>.png" alt="">
+                    </div>
+                    <div class="itemNamePrice">
+                        <h2 class="itemName">
+                            <%= user[0].name %>
+                        </h2>
+                        <div class="itemPrice"> 価格：￥<%= user[0].price %>
+                        </div>
+                        <form action="/" method="POST" name="questionnaire">
+                            <div class="notShow"><label for="itemId">id<span> ※</span></label> </div>
+                            <input class="notShow" id="itemId" type="text" name="itemId" value="<%= user[0].id %>">
+                                <div class="notShow"><label for="name">名前<span> ※</span></label> </div>
+                                <input class="notShow" id="name" type="text" name="name" value="<%= user[0].name %>">
+                                    <div class="notShow"><label for="price">値段<span> ※</span></label> </div>
+                                    <input class="notShow" id="price" type="text" name="price" value="<%= user[0].price %>">
+                                        <div class="button"><button class="add-to-cart-btn">カートに追加</button></div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="customerReview">カスタマーレビュー</div>
+            <span class="sort"> 並び替え：<select class="search__sorting" name="sort">
+                    <option value="選択してください">選択してください</option>
+                    <option value="高い順">高い順</option>
+                    <option value="低い順">低い順</option>
+                </select>
+            </span>
+            <div class="list">
+                <ul class="reviewList2">
+                </ul>
+            </div>
+        </section>
+        <script>
+            let user = JSON.parse('<%= JSON.stringify(user) %>'.replace(/&#34;/g, '"'));
+            let def = JSON.parse('<%= JSON.stringify(def) %>'.replace(/&#34;/g, '"'));
+            let asc = JSON.parse('<%= JSON.stringify(asc) %>'.replace(/&#34;/g, '"'));
+            let desc = JSON.parse('<%= JSON.stringify(desc) %>'.replace(/&#34;/g, '"'));
+            console.log(user)
+
+            // 対象の商品のみの配列作成（デフォルト、高い順、低い順）
+            let targetDef = [];
+            def.forEach(element => {
+                if (element.itemId === user[0].id) {
+                    targetDef.push(element);
+                }
+            });
+            let targetLow = [];
+            asc.forEach(element => {
+                if (element.itemId === user[0].id) {
+                    targetLow.push(element);
+                }
+            });
+            let targetHigh = [];
+            desc.forEach(element => {
+                if (element.itemId === user[0].id) {
+                    targetHigh.push(element);
+                }
+            });
+
+            // 評価マークの表示
+            let star5_rating = document.querySelectorAll('.star5_rating');
+            for (let i = 0; i < user.length; i++) {
+                for (let j = 0; j < 5.5; j += 0.5) {
+                    if (user[i].rating === j) {
+                        star5_rating[i].setAttribute('data-rate', j);
+                    }
+                }
+            }
+
+            // コンポーネントのルートノード
+            let nodeApp = document.querySelector('#app');
+
+            // セレクトボックスのイベントハンドラを登録
+            // 並び替え
+            let nodeSelect = nodeApp.querySelector('.search__sorting');
+            nodeSelect.addEventListener('change', onOrderChanged, false);
+
+            // 並び順の変更イベントハンドラ
+            function onOrderChanged(event) {
+                //「選択してください」が選択されている場合
+                if (event.target.value === '選択してください') {
+                    listChange(targetDef);
+                }
+                // 「高い順」が選択されている場合
+                else if (event.target.value === '高い順') {
+                    listChange(targetHigh);
+                }
+                // 「低い順」が選択されている場合
+                else if (event.target.value === '低い順') {
+                    listChange(targetLow);
+                }
+            }
+
+            // リスト変更の関数
+            function listChange(x) {
+                let nodeList = nodeApp.querySelector('.reviewList2');
+                let newList = [];
+                newList = x;
+                nodeList.innerHTML = "";
+                for (let i = 0; i < newList.length; i++) {
+                    nodeList.insertAdjacentHTML('beforeend', `
+                        <li class="listItem2">
+                            <div class="userInfo2">
+                                <h2 class="userName">投稿者ID：${newList[i].userId}</h2>
+                            </div>
+                            <span class="star5_rating"></span>
+                            <span class="rating">
+                                ${newList[i].evaluation}
+                            </span>
+                            <div class="content">
+                                ${newList[i].content}
+                            </div>
+                        </li>
+                       `)
+                }
+            }
+
+            window.onload = listChange(targetDef);
+        </script>
+    </body>
+</html>

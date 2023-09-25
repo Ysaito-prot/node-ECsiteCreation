@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="ja">
+    <head>
+        <meta charset="UTF-8">
+        <title>ECサイト作成</title>
+        <link type="text/css" rel="stylesheet" href="css/style.css">
+    </head>
+    <body>
+        <section id="app">
+            <h1 class="title">商品一覧</h1>
+            <div class="cart"><a href="/shoppingBag"><img src="image/cart.png" alt="" width="50px" height="50px">カート</a></div>
+            <span> 並び替え：<select class="search__sorting" name="sort">
+                    <option value="選択してください">選択してください</option>
+                    <option value="商品価格高い順">商品価格高い順</option>
+                    <option value="商品価格低い順">商品価格低い順</option>
+                    <option value="商品名50音">商品名50音</option>
+                    <option value="レビューの評価順">レビューの評価順</option>
+                    <option value="レビューの多い順">レビューの多い順</option>
+                </select>
+            </span>
+            <div class="list">
+                <div class="reviewList">
+                </div>
+            </div>
+        </section>
+        <script>
+            let users = JSON.parse('<%= JSON.stringify(users) %>'.replace(/&#34;/g, '"'));
+            let users2 = JSON.parse('<%= JSON.stringify(users2) %>'.replace(/&#34;/g, '"'));
+            let priceASC = JSON.parse('<%= JSON.stringify(priceASC) %>'.replace(/&#34;/g, '"'));
+            let priceDESC = JSON.parse('<%= JSON.stringify(priceDESC) %>'.replace(/&#34;/g, '"'));
+            let asc50on = JSON.parse('<%= JSON.stringify(asc50on) %>'.replace(/&#34;/g, '"'));
+            let ratingAVG = JSON.parse('<%= JSON.stringify(ratingAVG) %>'.replace(/&#34;/g, '"'));
+            let reviewCOUNT = JSON.parse('<%= JSON.stringify(reviewCOUNT) %>'.replace(/&#34;/g, '"'));
+
+            // 商品画像の定義
+            let img = [
+                {
+                    id: 1,
+                    url: "../image/number-1.png"
+                },
+                {
+                    id: 2,
+                    url: "../image/number-2.png"
+                },
+                {
+                    id: 3,
+                    url: "../image/number-3.png"
+                },
+                {
+                    id: 4,
+                    url: "../image/number-4.png"
+                },
+                {
+                    id: 5,
+                    url: "../image/number-5.png"
+                },
+                {
+                    id: 6,
+                    url: "../image/number-6.png"
+                },
+                {
+                    id: 7,
+                    url: "../image/number-7.png"
+                },
+                {
+                    id: 8,
+                    url: "../image/number-8.png"
+                },
+                {
+                    id: 9,
+                    url: "../image/number-9.png"
+                },
+                {
+                    id: 10,
+                    url: "../image/number-10.png"
+                }
+            ]
+
+            // 平均評価キーの付与
+            for (let a = 0; a < users.length; a++) {
+                for (let j = 0; j < ratingAVG.length; j++) {
+                    if (users[a].id === ratingAVG[j].itemId) {
+                        users[a].rating = ratingAVG[j]["AVG(evaluation)"];
+                    }
+                }
+            }
+            let hasRating = [];
+            let notHasRating = [];
+            users.forEach(element => {
+                if (element.hasOwnProperty('rating')) {
+                    hasRating.push(element);
+                } else {
+                    notHasRating.push(element);
+                }
+            });
+            hasRating.sort(function (a, b) {
+                return b.rating - a.rating;
+            });
+            notHasRating.forEach(element => {
+                hasRating.push(element);
+            });
+
+            // レビュー数キーの付与
+            for (let a = 0; a < users.length; a++) {
+                for (let j = 0; j < reviewCOUNT.length; j++) {
+                    if (users[a].id === reviewCOUNT[j].itemId) {
+                        users[a].review = reviewCOUNT[j]["COUNT(itemId)"];
+                    }
+                }
+            }
+            let hasReview = [];
+            let notHasReview = [];
+            users.forEach(element => {
+                if (element.hasOwnProperty('review')) {
+                    hasReview.push(element);
+                } else {
+                    notHasReview.push(element);
+                }
+            });
+            hasReview.sort(function (a, b) {
+                return b.review - a.review;
+            });
+            notHasReview.forEach(element => {
+                hasReview.push(element);
+            });
+            console.log(hasReview)
+
+            // コンポーネントのルートノード
+            let nodeApp = document.querySelector('#app');
+
+            // セレクトボックスのイベントハンドラを登録
+            // 並び替え
+            let nodeSelect = nodeApp.querySelector('.search__sorting');
+            nodeSelect.addEventListener('change', onOrderChanged, false);
+
+            // 並び順の変更イベントハンドラ
+            function onOrderChanged(event) {
+                //「選択してください」が選択されている場合
+                if (event.target.value === '選択してください') {
+                    listChange(users, ratingAVG);
+                }
+                // 「高い順」が選択されている場合
+                else if (event.target.value === '商品価格高い順') {
+                    listChange(priceDESC, ratingAVG);
+                }
+                // 「低い順」が選択されている場合
+                else if (event.target.value === '商品価格低い順') {
+                    listChange(priceASC, ratingAVG);
+                }
+                // 「商品名50音」が選択されている場合
+                else if (event.target.value === '商品名50音') {
+                    listChange(asc50on, ratingAVG);
+                }
+                // 「レビューの評価順」が選択されている場合
+                else if (event.target.value === 'レビューの評価順') {
+                    listChange(hasRating, ratingAVG);
+                }
+                // 「レビューの多い順」が選択されている場合
+                else if (event.target.value === 'レビューの多い順') {
+                    listChange(hasReview, ratingAVG);
+                }
+            }
+
+            // リスト変更の関数
+            function listChange(x, y) {
+                let nodeList = nodeApp.querySelector('.reviewList');
+                let newList = [];
+                let newList2 = [];
+                newList = x;
+                newList2 = y;
+                nodeList.innerHTML = "";
+                // 商品画像キーの付与
+                for (let a = 0; a < newList.length; a++) {
+                    for (let j = 0; j < img.length; j++) {
+                        if (newList[a].id === img[j].id) {
+                            newList[a].img = img[j].url;
+                        }
+                    }
+                }
+
+                for (let i = 0; i < newList.length; i++) {
+                    nodeList.insertAdjacentHTML('beforeend', `
+                                <div class="listItem">
+                                    <div class="userInfo">
+                                        <div class="img">
+                                            <img src=${newList[i].img} width="150px" height="150px">
+                                        </div>
+                                        <h2 class="itemName"><a href="/edit/${newList[i].id}">${newList[i].name}</a></h2>
+                                        <div class="price">￥${newList[i].price}</div>
+                                    </div>
+                                </div>
+                               `);
+                }
+                let itemName = document.querySelectorAll('.itemName');
+                for (let a = 0; a < newList.length; a++) {
+                    for (let j = 0; j < newList2.length; j++) {
+                        if (newList[a].id === newList2[j].itemId) {
+                            let reviewCount = 0;
+                            users2.forEach(element => {
+                                if (element.itemId === newList2[j].itemId) {
+                                    reviewCount++;
+                                }
+                            });
+                            itemName[a].insertAdjacentHTML('afterend', `
+                                    <span class="star5_rating" data-rate="${(Math.round((newList2[j]["AVG(evaluation)"]) * 10) / 10)}"></span>
+                                    <span class="rating">${(Math.round((newList2[j]["AVG(evaluation)"]) * 10) / 10)}</span>
+                                    <span class="review">(${reviewCount}件)</span>
+                               `);
+                        }
+                    }
+                }
+                // console.log(users2);
+            }
+            window.onload = listChange(users, ratingAVG)
+        </script>
+    </body>
+</html>
