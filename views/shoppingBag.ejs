@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ja">
+    <head>
+        <meta charset="UTF-8">
+        <title>ショッピングカート</title>
+        <link type="text/css" rel="stylesheet" href="/css/style.css">
+    </head>
+    <body>
+        <section id="app">
+            <h1>ショッピングカート</h1>
+            <div class="container">
+                <ul>
+                    <% shoppingbasket.forEach(function (value) { %>
+                        <li class="itemList">
+                            <div class="img">
+                                <img src="../image/number-<%= value.itemId %>.png" alt="" width="200px" height="200px">
+                            </div>
+                            <div class="basketList">
+                                <div class="basketName">
+                                    <%= value.name %>
+                                </div>
+                                <div class="basketPrice">
+                                    ￥<%= value.price %>
+                                </div>
+                                <div class="delete"><a href="/delete/<%= value.itemId %>">削除</a></div>
+                            </div>
+                        </li>
+                        <% }); %>
+                </ul>
+                <div class="aside">
+                    <div class="total">合計：￥<%= sumPrice[0]["SUM(price)"] %></div>
+                    <div class="point">獲得ポイント：**ポイント</div>
+                    <input type="checkbox">ギフトに設定（贈り主の氏名を表示）
+                    <div class="button"><button class="go-to-cashRegisterBtn">レジに進む</button></div>
+                </div>
+            </div>
+        </section>
+        <script>
+            let shoppingbasket = JSON.parse('<%= JSON.stringify(shoppingbasket) %>'.replace(/&#34;/g, '"'));
+        </script>
+    </body>
+</html>
